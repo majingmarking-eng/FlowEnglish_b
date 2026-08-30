@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowEnglish 设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-name">flowenglish</span>
+        <span class="brand-sub">B 站英文课程学习助手 · 数据全部保存在本地</span>
+      </div>
+    </header>
+
+    <nav class="nav">
+      <a href="#api" data-nav="api" class="nav-item">API 配置</a>
+      <a href="#cache" data-nav="cache" class="nav-item">缓存管理</a>
+      <a href="#words" data-nav="words" class="nav-item">全局生词本</a>
+      <a href="#backup" data-nav="backup" class="nav-item">备份</a>
+    </nav>
+
+    <!-- ================= API 配置 ================= -->
+    <section class="section" id="sec-api">
+      <div class="card">
+        <div class="card-head">
+          <h2>ASR 语音识别 <span class="tag tag-required">无英文字幕时使用</span></h2>
+          <p class="card-desc">只在「视频无原生英文字幕 + 你手动确认」时才会调用。生成结果永久缓存本地。</p>
+        </div>
+        <div class="form-grid">
+          <label class="field">
+            <span>供应商预设（一键填写）</span>
+            <select id="asr-preset">
+              <option value="custom">自定义</option>
+              <option value="volc-ark">火山方舟 · 豆包种子语音识别（OpenAI 兼容，推荐）</option>
+              <option value="volc-speech">火山语音平台 · 豆包语音识别极速版</option>
+              <option value="openai">OpenAI Whisper</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>协议</span>
+            <select id="asr-protocol">
+              <option value="volcano-flash">火山引擎 · 豆包语音识别（极速版）</option>
+              <option value="openai">OpenAI Whisper 兼容（multipart + verbose_json）</option>
+              <option value="multipart">通用 multipart（file 字段 + model/language）</option>
+              <option value="json-base64">JSON base64（audio 字段）</option>
+            </select>
+          </label>
+          <label class="field field-full">
+            <span>接口地址（必填）</span>
+            <input type="text" id="asr-endpoint" placeholder="https://ark.cn-beijing.volces.com/api/v3/audio/transcriptions">
+          </label>
+
+          <!-- 火山引擎专属字段 -->
+          <div class="field-full volcano-fields" id="volcano-fields" hidden>
+            <label class="field field-full">
+              <span>API Key（X-Api-Key，新版控制台，优先使用）</span>
+              <input type="password" id="asr-api-key" placeholder="在 console.volcengine.com/speech 的 API Key 管理里获取">
+            </label>
+            <label class="field">
+              <span>旧版 App ID（X-Api-App-Key，二选一）</span>
+              <input type="text" id="asr-app-key" placeholder="旧版控制台的 APP ID">
+            </label>
+            <label class="field">
+              <span>旧版 Access Token（二选一）</span>
+              <input type="password" id="asr-access-key" placeholder="旧版控制台的 Access Token">
+            </label>
+            <label class="field">
+              <span>Resource ID</span>
+              <input type="text" id="asr-resource-id" placeholder="volc.bigasr.auc_turbo">
+            </label>
+            <div class="field">
+              <span>&nbsp;</span>
+              <div class="volcano-hint">需在控制台开通「录音文件识别极速版」权限。豆包 2.0 标准版（volc.seedasr.auc，submit/query）要求公网音频 URL，插件场景请用极速版。</div>
+            </div>
+          </div>
+
+          <label class="field" id="field-token">
+            <span>Token</span>
+            <input type="password" id="asr-token" placeholder="sk-...">
+          </label>
+          <label class="field" id="field-model">
+            <span>模型</span>
+            <input type="text" id="asr-model" placeholder="whisper-1">
+          </label>
+          <label class="field">
+            <span>语言</span>
+            <input type="text" id="asr-language" placeholder="en">
+          </label>
+          <label class="field">
+            <span>上传格式</span>
+            <select id="asr-audio-format">
+              <option value="wav16k">WAV 16kHz 单声道（推荐，兼容性最好）</option>
+              <option value="webm">WebM/Opus 原始流（更省流量）</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>切片时长（秒）</span>
+            <input type="number" id="asr-slice" min="15" max="300" placeholder="60">
+          </label>
+          <label class="field field-full" id="field-headers">
+            <span>额外请求头（每行一条，Key: Value）</span>
+            <textarea id="asr-headers" rows="2" placeholder=""></textarea>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>LLM <span class="tag">AI 释义 / AI 笔记 / 翻译兜底</span></h2>
+          <p class="card-desc">OpenAI Chat Completions 兼容接口。火山方舟：模型填 Model ID（如 doubao-seed-2-1-pro-260628）或推理接入点 ID（ep-xxx）。</p>
+        </div>
+        <div class="form-grid">
+          <label class="field">
+            <span>供应商预设（一键填写）</span>
+            <select id="llm-preset">
+              <option value="custom">自定义</option>
+              <option value="volc-ark">火山方舟 · 豆包大模型（推荐）</option>
+              <option value="openai">OpenAI</option>
+              <option value="deepseek">DeepSeek</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>模型（方舟：Model ID 或 ep- 接入点）</span>
+            <input type="text" id="llm-model" placeholder="doubao-seed-2-1-pro-260628 或 ep-xxxx">
+          </label>
+          <label class="field field-full">
+            <span>接口地址</span>
+            <input type="text" id="llm-endpoint" placeholder="https://ark.cn-beijing.volces.com/api/v3/chat/completions">
+          </label>
+          <label class="field field-full">
+            <span>API Key / Token（方舟：控制台「API Key 管理」创建）</span>
+            <input type="password" id="llm-token" placeholder="方舟 API Key 或 sk-...">
+          </label>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost" id="llm-test" type="button">测试连接</button>
+          <span class="test-result" id="llm-test-result"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>翻译 <span class="tag">中文字幕开关</span></h2>
+          <p class="card-desc">全部留空即复用上方 LLM（火山方舟）翻译。仅在你打开「中文」开关且字幕没有中文时调用。</p>
+        </div>
+        <div class="form-grid">
+          <label class="field field-full">
+            <span>接口地址（可选）</span>
+            <input type="text" id="tr-endpoint" placeholder="留空 = 复用 LLM 配置">
+          </label>
+          <label class="field">
+            <span>Token（可选）</span>
+            <input type="password" id="tr-token" placeholder="留空 = 复用 LLM Token">
+          </label>
+          <label class="field">
+            <span>模型（可选）</span>
+            <input type="text" id="tr-model" placeholder="留空 = 复用 LLM 模型">
+          </label>
+        </div>
+      </div>
+
+      <div class="save-bar">
+        <button class="btn btn-primary" id="save-config" type="button">保存配置</button>
+        <span class="save-tip" id="save-tip"></span>
+      </div>
+    </section>
+
+    <!-- ================= 缓存管理 ================= -->
+    <section class="section" id="sec-cache" hidden>
+      <div class="card">
+        <div class="card-head card-head-row">
+          <h2>已缓存视频</h2>
+          <div class="cache-tools">
+            <span class="cache-usage" id="cache-usage"></span>
+            <button class="btn btn-ghost btn-sm" id="cache-refresh" type="button">刷新</button>
+          </div>
+        </div>
+        <p class="card-desc">以「BV 号 + 分 P」为 key 独立缓存；删除会同步清除该视频的字幕、生词、笔记、练习记录。</p>
+        <div class="cache-list" id="cache-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= 全局生词本 ================= -->
+    <section class="section" id="sec-words" hidden>
+      <div class="card">
+        <div class="card-head card-head-row">
+          <h2>全局生词本</h2>
+          <div class="cache-tools">
+            <button class="btn btn-ghost btn-sm" id="words-export" type="button">导出 CSV</button>
+            <button class="btn btn-ghost btn-sm" id="words-refresh" type="button">刷新</button>
+          </div>
+        </div>
+        <div class="words-list" id="words-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= 备份 ================= -->
+    <section class="section" id="sec-backup" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h2>全量备份</h2>
+          <p class="card-desc">包含全部视频缓存（字幕 / 生词 / 笔记 / 练习）与配置。JSON 格式，可随时导入恢复。</p>
+        </div>
+        <div class="backup-actions">
+          <button class="btn btn-primary" id="backup-export" type="button">导出 JSON 备份</button>
+          <label class="btn btn-ghost btn-file">
+            导入备份
+            <input type="file" id="backup-import" accept=".json,application/json" hidden>
+          </label>
+          <select id="backup-mode" class="select">
+            <option value="merge">合并导入（按更新时间取新）</option>
+            <option value="overwrite">覆盖导入（清空后写入）</option>
+          </select>
+        </div>
+        <div class="backup-tip" id="backup-tip"></div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      FlowEnglish 不收集、不上传任何数据；所有密钥、字幕、生词、笔记仅保存在本浏览器。
+    </footer>
+  </div>
+
+  <script src="../lib/core.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="../lib/subtitle.js"></script>
+  <script src="../lib/exporter.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

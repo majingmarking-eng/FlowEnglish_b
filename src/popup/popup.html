@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>FlowEnglish</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <span class="dot"></span>
+      <span class="name">flowenglish</span>
+    </div>
+    <div class="desc">B 站英文课程学习助手<br>在视频页点击播放器下方按钮开始学习</div>
+
+    <div class="status-grid">
+      <div class="status-row">
+        <span>ASR 接口</span>
+        <span class="badge" id="st-asr">未配置</span>
+      </div>
+      <div class="status-row">
+        <span>LLM 接口</span>
+        <span class="badge" id="st-llm">未配置</span>
+      </div>
+      <div class="status-row">
+        <span>已缓存视频</span>
+        <span class="badge badge-blue" id="st-videos">0</span>
+      </div>
+      <div class="status-row">
+        <span>生词总数</span>
+        <span class="badge badge-blue" id="st-words">0</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="open-options" type="button">打开设置</button>
+      <button class="btn btn-ghost" id="open-bili" type="button">去 B 站学习</button>
+    </div>
+  </div>
+
+  <script src="../lib/core.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

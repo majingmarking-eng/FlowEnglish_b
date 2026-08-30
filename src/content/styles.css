@@ -1,0 +1,768 @@
+/* FlowEnglish - 面板样式
+ * 设计：Inter / Primary #1E5EFF / Bg #F8FAFC / Text #1F2937 / Success #22C55E
+ * 大按钮、圆角、高留白、强制浅色（不跟随 B 站深色模式）
+ */
+#flowenglish-root,
+#flowenglish-root * {
+  box-sizing: border-box;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+#flowenglish-root {
+  position: relative;
+  z-index: 99999;
+  color: #1f2937;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+/* ---------------- 启动条 ---------------- */
+#flowenglish-root .fe-launcher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  flex-wrap: wrap;
+}
+#flowenglish-root .fe-launcher-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#flowenglish-root .fe-launcher-actions .fe-btn {
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+#flowenglish-root .fe-brand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 22px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: #1e5eff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  box-shadow: 0 2px 8px rgba(30, 94, 255, 0.25);
+}
+#flowenglish-root .fe-brand-btn:hover {
+  background: #1a52e6;
+  box-shadow: 0 4px 14px rgba(30, 94, 255, 0.35);
+  transform: translateY(-1px);
+}
+#flowenglish-root .fe-brand-btn:active { transform: translateY(0); }
+#flowenglish-root .fe-brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.9;
+}
+#flowenglish-root.fe-active .fe-brand-dot { background: #22c55e; }
+#flowenglish-root .fe-launcher-status {
+  font-size: 13px;
+  color: #64748b;
+}
+#flowenglish-root .fe-launcher-status.is-active { color: #1e5eff; font-weight: 600; }
+
+/* ---------------- 面板容器 ---------------- */
+#flowenglish-root .fe-panel {
+  margin-top: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+#flowenglish-root .fe-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eef2f7;
+  background: #f8fafc;
+  flex-wrap: wrap;
+}
+#flowenglish-root .fe-head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+#flowenglish-root .fe-brand-mini {
+  font-weight: 800;
+  color: #1e5eff;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+#flowenglish-root .fe-source-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f0ff;
+  color: #1e5eff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+#flowenglish-root .fe-source-badge.is-asr {
+  background: #ecfdf5;
+  color: #16a34a;
+}
+#flowenglish-root .fe-title {
+  font-size: 13px;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
+}
+#flowenglish-root .fe-tabs {
+  display: flex;
+  gap: 4px;
+  background: #eef2f7;
+  padding: 4px;
+  border-radius: 10px;
+}
+#flowenglish-root .fe-tab {
+  border: none;
+  background: transparent;
+  padding: 6px 16px;
+  min-height: 32px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+#flowenglish-root .fe-tab.is-active {
+  background: #fff;
+  color: #1e5eff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+#flowenglish-root .fe-head-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#flowenglish-root .fe-icon-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #eef2f7;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+}
+#flowenglish-root .fe-icon-btn:hover { background: #e2e8f0; }
+
+/* 中文开关 */
+#flowenglish-root .fe-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+#flowenglish-root .fe-switch input { display: none; }
+#flowenglish-root .fe-switch-ui {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  position: relative;
+  transition: background 0.15s ease;
+}
+#flowenglish-root .fe-switch-ui::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+#flowenglish-root .fe-switch input:checked + .fe-switch-ui { background: #1e5eff; }
+#flowenglish-root .fe-switch input:checked + .fe-switch-ui::after { transform: translateX(16px); }
+#flowenglish-root .fe-switch-label { font-size: 13px; color: #475569; font-weight: 600; }
+
+/* ---------------- ASR 进度条 ---------------- */
+#flowenglish-root .fe-asr-bar {
+  border-bottom: 1px solid #eef2f7;
+  background: #f0f6ff;
+  padding: 10px 16px;
+}
+#flowenglish-root .fe-asr-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#flowenglish-root .fe-asr-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#flowenglish-root .fe-asr-state { font-size: 13px; font-weight: 600; color: #1e5eff; }
+#flowenglish-root .fe-asr-state.is-error { color: #dc2626; word-break: break-all; }
+#flowenglish-root .fe-asr-detail { font-size: 12px; color: #64748b; }
+#flowenglish-root .fe-asr-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: #dbeafe;
+  overflow: hidden;
+}
+#flowenglish-root .fe-asr-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1e5eff, #4f8dff);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* ---------------- 主体 ---------------- */
+#flowenglish-root .fe-body {
+  padding: 16px;
+  max-height: 560px;
+  overflow-y: auto;
+}
+#flowenglish-root .fe-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: #94a3b8;
+}
+#flowenglish-root .fe-empty-title { font-size: 15px; font-weight: 700; color: #475569; margin-bottom: 6px; }
+#flowenglish-root .fe-empty-desc { font-size: 13px; }
+
+/* 当前句卡片 */
+#flowenglish-root .fe-now-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+/* 翻译状态提示条 */
+#flowenglish-root .fe-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+#flowenglish-root .fe-notice.is-warn {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+#flowenglish-root .fe-notice.is-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+#flowenglish-root .fe-notice.is-resume {
+  background: #e8f0ff;
+  border: 1px solid #bfdbfe;
+  color: #1e5eff;
+}
+#flowenglish-root .fe-notice .fe-btn {
+  min-height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+#flowenglish-root .fe-notice.is-warn .fe-btn { color: #b45309; border-color: #fde68a; }
+#flowenglish-root .fe-notice.is-error .fe-btn { color: #b91c1c; border-color: #fecaca; }
+#flowenglish-root .fe-notice.is-resume .fe-btn { color: #1e5eff; border-color: #bfdbfe; }
+
+/* 标记入笔记弹窗预览 */
+#flowenglish-root .fe-mark-en {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #1f2937;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+#flowenglish-root .fe-mark-zh {
+  font-size: 13px;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+#flowenglish-root .fe-mark-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+#flowenglish-root .fe-now-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+#flowenglish-root .fe-dot-sep::before { content: "·"; }
+#flowenglish-root .fe-loop-badge {
+  background: #ecfdf5;
+  color: #16a34a;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+#flowenglish-root .fe-now-en {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.6;
+  margin-bottom: 6px;
+  user-select: text;
+}
+#flowenglish-root .fe-now-zh {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+#flowenglish-root .fe-now-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 字幕列表 */
+#flowenglish-root .fe-cue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#flowenglish-root .fe-cue {
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+#flowenglish-root .fe-cue:hover { background: #f1f5f9; }
+#flowenglish-root .fe-cue.is-current {
+  background: #e8f0ff;
+  box-shadow: inset 3px 0 0 #1e5eff;
+}
+#flowenglish-root .fe-cue.is-looping {
+  background: #ecfdf5;
+  box-shadow: inset 3px 0 0 #22c55e;
+}
+#flowenglish-root .fe-cue-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 72px;
+}
+#flowenglish-root .fe-cue-main { flex: 1; min-width: 0; }
+#flowenglish-root .fe-cue-en {
+  font-size: 14px;
+  color: #1f2937;
+  line-height: 1.55;
+  user-select: text;
+}
+#flowenglish-root .fe-cue-zh {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* 时间 chip */
+#flowenglish-root .fe-timechip {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1e5eff;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#flowenglish-root .fe-timechip:hover { background: #e8f0ff; border-color: #bfdbfe; }
+
+/* ---------------- 按钮体系 ---------------- */
+#flowenglish-root .fe-btn {
+  min-height: 38px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+#flowenglish-root .fe-btn-sm { min-height: 32px; padding: 0 14px; font-size: 13px; }
+#flowenglish-root .fe-btn-primary {
+  background: #1e5eff;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(30, 94, 255, 0.25);
+}
+#flowenglish-root .fe-btn-primary:hover { background: #1a52e6; }
+#flowenglish-root .fe-btn-ghost {
+  background: #eef2f7;
+  color: #475569;
+}
+#flowenglish-root .fe-btn-ghost:hover { background: #e2e8f0; }
+#flowenglish-root .fe-btn-danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+#flowenglish-root .fe-btn-danger:hover { background: #fee2e2; }
+#flowenglish-root .fe-link-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+#flowenglish-root .fe-link-btn:hover { background: #f1f5f9; color: #1e5eff; }
+#flowenglish-root .fe-link-btn.fe-danger:hover { color: #dc2626; }
+#flowenglish-root .fe-mini-btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #94a3b8;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#flowenglish-root .fe-mini-btn:hover { color: #1e5eff; border-color: #bfdbfe; background: #e8f0ff; }
+#flowenglish-root .fe-mini-btn.fe-danger:hover { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+
+/* ---------------- 生词页 ---------------- */
+#flowenglish-root .fe-words-list { display: flex; flex-direction: column; gap: 8px; }
+#flowenglish-root .fe-word-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 2fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+#flowenglish-root .fe-word-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+}
+#flowenglish-root .fe-word-note {
+  display: block;
+  font-size: 12px;
+  color: #16a34a;
+  margin-top: 2px;
+}
+#flowenglish-root .fe-word-ctx {
+  font-size: 13px;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#flowenglish-root .fe-word-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------------- 练习页 ---------------- */
+#flowenglish-root .fe-quiz-intro {
+  text-align: center;
+  padding: 32px 24px;
+}
+#flowenglish-root .fe-quiz-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+#flowenglish-root .fe-quiz-desc { font-size: 13px; color: #64748b; margin-bottom: 18px; }
+#flowenglish-root .fe-quiz-history {
+  margin-top: 20px;
+  border-top: 1px solid #eef2f7;
+  padding-top: 12px;
+}
+#flowenglish-root .fe-quiz-h-title { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; }
+#flowenglish-root .fe-quiz-h-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+  padding: 4px 0;
+}
+#flowenglish-root .fe-quiz-score { font-weight: 700; color: #1e5eff; }
+#flowenglish-root .fe-quiz-body { display: flex; flex-direction: column; gap: 10px; }
+#flowenglish-root .fe-quiz-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+#flowenglish-root .fe-quiz-item.is-ok { border-color: #bbf7d0; background: #f0fdf4; }
+#flowenglish-root .fe-quiz-item.is-bad { border-color: #fecaca; background: #fef2f2; }
+#flowenglish-root .fe-quiz-no { font-weight: 700; color: #94a3b8; width: 24px; flex-shrink: 0; }
+#flowenglish-root .fe-quiz-main { flex: 1; min-width: 0; }
+#flowenglish-root .fe-quiz-sentence { font-size: 14px; line-height: 1.6; margin-bottom: 4px; }
+#flowenglish-root .fe-quiz-hint { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+#flowenglish-root .fe-quiz-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#flowenglish-root .fe-input {
+  flex: 1;
+  max-width: 260px;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  transition: border 0.15s ease, box-shadow 0.15s ease;
+}
+#flowenglish-root .fe-input:focus {
+  border-color: #1e5eff;
+  box-shadow: 0 0 0 3px rgba(30, 94, 255, 0.15);
+}
+#flowenglish-root .fe-quiz-answer {
+  font-size: 13px;
+  font-weight: 700;
+  color: #16a34a;
+}
+#flowenglish-root .fe-quiz-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+#flowenglish-root .fe-quiz-score-big {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e5eff;
+}
+
+/* ---------------- 笔记页 ---------------- */
+#flowenglish-root .fe-note-editor {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+  background: #f8fafc;
+}
+#flowenglish-root .fe-textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  background: #fff;
+  transition: border 0.15s ease, box-shadow 0.15s ease;
+}
+#flowenglish-root .fe-textarea:focus {
+  border-color: #1e5eff;
+  box-shadow: 0 0 0 3px rgba(30, 94, 255, 0.15);
+}
+#flowenglish-root .fe-note-editor-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+#flowenglish-root .fe-notes-list { display: flex; flex-direction: column; gap: 10px; }
+#flowenglish-root .fe-note-row {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #fff;
+}
+#flowenglish-root .fe-note-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+#flowenglish-root .fe-note-ai {
+  font-size: 10px;
+  font-weight: 800;
+  color: #7c3aed;
+  background: #f3e8ff;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+#flowenglish-root .fe-note-time {
+  font-size: 11px;
+  color: #94a3b8;
+  flex: 1;
+}
+#flowenglish-root .fe-note-text { font-size: 13px; color: #334155; line-height: 1.7; }
+
+/* ---------------- 底部 ---------------- */
+#flowenglish-root .fe-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid #eef2f7;
+  background: #f8fafc;
+  flex-wrap: wrap;
+}
+#flowenglish-root .fe-foot-left,
+#flowenglish-root .fe-foot-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+/* ---------------- 弹窗 ---------------- */
+#flowenglish-root .fe-modal-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#flowenglish-root .fe-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+}
+#flowenglish-root .fe-modal-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+#flowenglish-root .fe-modal-body {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.7;
+}
+#flowenglish-root .fe-modal-body p { margin: 0 0 10px; }
+#flowenglish-root .fe-modal-body .fe-muted { color: #94a3b8; font-size: 13px; }
+#flowenglish-root .fe-modal-warn {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+#flowenglish-root .fe-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ---------------- Toast ---------------- */
+#flowenglish-root .fe-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483200;
+  background: #1f2937;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3);
+  max-width: 70vw;
+  text-align: center;
+}
+
+/* ---------------- 划词提示（挂 body，ID 前缀样式） ---------------- */
+.fe-word-tip {
+  position: fixed;
+  z-index: 2147483647;
+  animation: fe-tip-in 0.15s ease;
+}
+.fe-word-tip .fe-btn {
+  box-shadow: 0 6px 20px rgba(30, 94, 255, 0.4);
+}
+@keyframes fe-tip-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fe-word-tip button {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: #1e5eff;
+  color: #fff;
+}
+.fe-word-tip button b { font-weight: 800; }
+
+/* 窄屏适配 */
+@media (max-width: 720px) {
+  #flowenglish-root .fe-title { display: none; }
+  #flowenglish-root .fe-word-row { grid-template-columns: 1fr; gap: 6px; }
+  #flowenglish-root .fe-cue-side { width: 60px; }
+  #flowenglish-root .fe-now-en { font-size: 16px; }
+}
