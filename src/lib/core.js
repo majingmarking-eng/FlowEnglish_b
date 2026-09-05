@@ -5,7 +5,7 @@
   'use strict';
 
   var FE = (global.FlowEnglish = global.FlowEnglish || {});
-  FE.VERSION = '0.1.0';
+  FE.VERSION = '0.3.2';
 
   FE.MSG = {
     GET_CONFIG: 'FE/GET_CONFIG',
@@ -56,7 +56,8 @@
     },
     ui: {
       showChinese: false,
-      panelMode: 'inline',    // inline | dock
+      panelMode: 'dock',      // inline | dock（dock = 右侧固定侧栏）
+      dockCollapsed: false,   // 右侧侧栏是否折叠成窄条
       autoScroll: true
     }
   };

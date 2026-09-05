@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FlowEnglish",
-  "version": "0.1.0",
-  "description": "B 站英文课程学习助手：缓存优先、原生字幕优先、按需 ASR，双语字幕 / 生词本 / 填空练习 / 笔记，全部数据保存在浏览器本地。",
+  "version": "0.3.2",
+  "description": "B 站英文课程学习助手：缓存优先、原生字幕优先、按需 ASR，双语字幕 / 生词本 / 中译英练习 / 笔记，全部数据保存在浏览器本地。",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

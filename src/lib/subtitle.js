@@ -135,27 +135,31 @@
     return list.slice(0, n || 3);
   };
 
-  /* ---------------- 填空练习（本地生成，不依赖 API） ---------------- */
+  /* ---------------- 中译英练习（本地生成，不依赖 API） ---------------- */
   sub.buildQuiz = function (cues, opts) {
     opts = opts || {};
     var count = opts.count || 5;
-    var pool = (cues || []).filter(function (c) { return (c.text || '').split(/\s+/).length >= 6; });
-    if (!pool.length) pool = cues || [];
+    /* 只从“有中文翻译”的句子里出题：中文是题面，没有中文就没法练。
+       不再退回纯英文池（那会产生一堆“暂无中文提示”的废题）。 */
+    var pool = (cues || []).filter(function (c) {
+      var t = (c.text || '').trim();
+      var z = (c.zh || '').trim();
+      return z && t.split(/\s+/).length >= 4;
+    });
+    if (!pool.length) return [];
+    /* 长句优先（信息量大），均匀分布取 count 题 */
+    pool.sort(function (a, b) {
+      return b.text.split(/\s+/).length - a.text.split(/\s+/).length;
+    });
     var step = Math.max(1, Math.floor(pool.length / count));
     var items = [];
     for (var i = 0; i < pool.length && items.length < count; i += step) {
       var c = pool[i];
-      var kws = sub.pickKeywords(c.text, 3);
-      if (!kws.length) continue;
-      var kw = kws[items.length % kws.length];
-      var re = new RegExp('\\b' + kw.replace(/[-']/g, '\\$&') + '\\b', 'i');
-      if (!re.test(c.text)) continue;
       items.push({
         start: c.start,
         end: c.end,
-        sentence: c.text.replace(re, '____'),
-        answer: kw,
-        hint: (c.zh || '').slice(0, 40)
+        sentence: c.text,            /* 原句：reveal 时给用户看 */
+        hint: c.zh                   /* 中文提示：题目展示 */
       });
     }
     return items;

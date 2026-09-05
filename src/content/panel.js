@@ -420,57 +420,80 @@
         var hist = (rec.exercises || []).slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
         p.innerHTML =
           '<div class="fe-quiz-intro">' +
-            '<div class="fe-quiz-title">基于当前视频字幕生成填空题</div>' +
-            '<div class="fe-quiz-desc">从字幕中抽取关键词挖空，共 5 题，答错可重答。完全在本地生成，不消耗 API。</div>' +
-            '<button class="fe-btn fe-btn-primary" data-role="gen" type="button">生成 5 道填空题</button>' +
+            '<div class="fe-quiz-title">英译中练习：看中文写英文</div>' +
+            '<div class="fe-quiz-desc">从字幕中抽取 5 句，隐藏英文原文，给你中文提示；填入英文后点"对照原句"查看原文，自己判断对错。每题可一键加入笔记。完全本地生成，不消耗 API。</div>' +
+            '<button class="fe-btn fe-btn-primary" data-role="gen" type="button">生成 5 题</button>' +
           '</div>' +
           (hist.length ?
-            '<div class="fe-quiz-history"><div class="fe-quiz-h-title">最近练习</div>' + hist.slice(0, 5).map(function (q) {
-              return '<div class="fe-quiz-h-row"><span>' + new Date(q.createdAt).toLocaleString('zh-CN') + '</span><span class="fe-quiz-score">' + q.score + ' / ' + (q.items || []).length + '</span></div>';
+            '<div class="fe-quiz-history"><div class="fe-quiz-h-title">历史练习</div>' + hist.slice(0, 5).map(function (q) {
+              return '<div class="fe-quiz-h-row"><span>' + new Date(q.createdAt).toLocaleString('zh-CN') + '</span><span class="fe-quiz-score">' + (q.score != null ? q.score + ' / ' + (q.items || []).length : '已对照') + '</span></div>';
             }).join('') + '</div>' : '');
         p.querySelector('[data-role="gen"]').addEventListener('click', function () { host.genQuiz(); });
         return;
       }
       var q = state.quiz;
+      /* 自愈：老练习快照可能是在翻译完成前生成的（hint 为空），
+         渲染时按 start 时间从最新字幕里把中文提示补回来 */
+      var cues = (state.record && state.record.cues) || [];
+      q.items.forEach(function (it) {
+        if (it.hint) return;
+        for (var k = 0; k < cues.length; k++) {
+          var c = cues[k];
+          if (Math.abs((c.start || 0) - (it.start || 0)) < 0.5 && c.zh) { it.hint = c.zh; return; }
+        }
+      });
       var rows = q.items.map(function (it, i) {
-        var ans = q.answers ? q.answers[i] : '';
-        var ok = q.graded ? it.correct : null;
-        return '<div class="fe-quiz-item' + (q.graded ? (ok ? ' is-ok' : ' is-bad') : '') + '">' +
+        var user = q.answers ? (q.answers[i] || '') : '';
+        return '<div class="fe-quiz-item">' +
           '<div class="fe-quiz-no">' + (i + 1) + '.</div>' +
           '<div class="fe-quiz-main">' +
-            '<div class="fe-quiz-sentence">' + h(it.sentence) + '</div>' +
-            (it.hint ? '<div class="fe-quiz-hint">' + h(it.hint) + '</div>' : '') +
-            '<div class="fe-quiz-input-row">' +
-              '<input class="fe-input" data-i="' + i + '" type="text" placeholder="填入缺失的单词" value="' + h(ans || '') + '"' + (q.graded ? ' disabled' : '') + ' autocomplete="off" spellcheck="false">' +
-              (q.graded ? '<span class="fe-quiz-answer">' + h(it.answer) + '</span>' : '') +
-            '</div>' +
+            '<div class="fe-quiz-hint">' + h(it.hint || '（暂无中文提示）') + '</div>' +
+            '<textarea class="fe-textarea fe-quiz-textarea" data-i="' + i + '" rows="2" placeholder="根据中文提示，写出对应的英文"' + (q.graded ? ' disabled' : '') + ' spellcheck="false">' + h(user) + '</textarea>' +
+            (q.graded
+              ? '<div class="fe-quiz-reveal">' +
+                  '<div class="fe-quiz-reveal-label">原句</div>' +
+                  '<div class="fe-quiz-reveal-text">' + h(it.sentence) + '</div>' +
+                '</div>'
+              : '') +
           '</div>' +
-          timeChip(it.start) +
+          '<div class="fe-quiz-side">' +
+            timeChip(it.start) +
+            (q.graded ? '<button class="fe-btn fe-btn-ghost fe-btn-sm" data-role="save-quiz" data-i="' + i + '" type="button">加入笔记</button>' : '') +
+          '</div>' +
         '</div>';
       }).join('');
       p.innerHTML =
         '<div class="fe-quiz-body">' + rows + '</div>' +
         '<div class="fe-quiz-actions">' +
           (q.graded
-            ? '<span class="fe-quiz-score-big">' + q.score + ' / ' + q.items.length + '</span>' +
+            ? '<span class="fe-quiz-status">已展示原文 · 自行对照输入</span>' +
               '<button class="fe-btn fe-btn-primary" data-role="again" type="button">再来一组</button>'
-            : '<button class="fe-btn fe-btn-primary" data-role="check" type="button">核对答案</button>' +
+            : '<button class="fe-btn fe-btn-primary" data-role="check" type="button">对照原句</button>' +
               '<button class="fe-btn fe-btn-ghost" data-role="restart" type="button">换一组</button>') +
         '</div>';
       p.querySelectorAll('.fe-timechip').forEach(function (b) {
         b.addEventListener('click', function () { host.seek(+b.getAttribute('data-t')); });
       });
       if (!q.graded) {
-        p.querySelector('[data-role="check"]').addEventListener('click', function () {
+        var checkBtn = p.querySelector('[data-role="check"]');
+        if (checkBtn) checkBtn.addEventListener('click', function () {
           var answers = [];
-          p.querySelectorAll('.fe-input').forEach(function (inp) {
-            answers[+inp.getAttribute('data-i')] = inp.value;
+          p.querySelectorAll('.fe-quiz-textarea').forEach(function (t) {
+            answers[+t.getAttribute('data-i')] = t.value;
           });
           host.submitQuiz(answers);
         });
-        p.querySelector('[data-role="restart"]').addEventListener('click', function () { host.genQuiz(); });
+        var restartBtn = p.querySelector('[data-role="restart"]');
+        if (restartBtn) restartBtn.addEventListener('click', function () { host.genQuiz(); });
       } else {
-        p.querySelector('[data-role="again"]').addEventListener('click', function () { host.genQuiz(); });
+        var againBtn = p.querySelector('[data-role="again"]');
+        if (againBtn) againBtn.addEventListener('click', function () { host.genQuiz(); });
+        p.querySelectorAll('[data-role="save-quiz"]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var i = +b.getAttribute('data-i');
+            host.saveQuizNote(q.items[i], q.answers && q.answers[i]);
+          });
+        });
       }
     }
 

@@ -766,3 +766,463 @@
   #flowenglish-root .fe-cue-side { width: 60px; }
   #flowenglish-root .fe-now-en { font-size: 16px; }
 }
+
+/* =====================================================================
+ * 右侧停靠栏 #fe-dock
+ * 位于屏幕最右侧的固定竖栏，宽度由 index.js 写入 --fe-dock-w
+ * （范围 420~560px；折叠时 46px）。
+ * 让位方式：给 <html> 加 margin-right —— 视口给 B 站的真实布局空间
+ * 直接缩小（body/fixed 均不再溢出到 dock 底下），实测比 body zoom /
+ * body padding 更稳（B 站内容有自己的 min-width，后两者顶不住）。
+ * fixed 顶栏与悬浮按钮不随 html margin 移动，下面单独补。
+ * ===================================================================== */
+
+/* ---- 1. 视口右侧让出 dock 宽度 ---- */
+html.fe-dock-open {
+  margin-right: var(--fe-dock-w, 320px) !important;
+}
+/* B 站 fixed 顶栏不随 html margin 移动，用内边距把内容压回 dock 左侧 */
+html.fe-dock-open .bili-header__bar,
+html.fe-dock-open [class*="header__bar"],
+html.fe-dock-open [class*="header-bar"],
+html.fe-dock-open .bili-header__banner,
+html.fe-dock-open .bili-header__channel,
+html.fe-dock-open [class*="header__channel"] {
+  padding-right: var(--fe-dock-w, 320px) !important;
+}
+/* B 站右下角悬浮按钮（回顶部 / 客服等）避开侧栏 */
+html.fe-dock-open .bili-float,
+html.fe-dock-open .float-nav,
+html.fe-dock-open [class*="fixed-nav"],
+html.fe-dock-open [class*="side-nav"],
+html.fe-dock-open [class*="float-btn"] {
+  right: calc(var(--fe-dock-w, 320px) + 12px) !important;
+}
+/* 全屏播放时侧栏让路 */
+html.fe-fullscreen #fe-dock { display: none !important; }
+html.fe-fullscreen { margin-right: 0 !important; }
+html.fe-fullscreen .bili-header__bar,
+html.fe-fullscreen [class*="header__bar"] { padding-right: 0 !important; }
+
+/* ---- 2. 停靠栏本体 ---- */
+#fe-dock {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--fe-dock-w, 320px);
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-left: 1px solid #e2e8f0;
+  box-shadow: -6px 0 24px rgba(15, 23, 42, 0.08);
+  color-scheme: light;
+  color: #1f2937;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#fe-dock *,
+#fe-dock *::before,
+#fe-dock *::after {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* ---- 3. 折叠态窄条（rail） ---- */
+#fe-dock .fe-dock-rail {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+#fe-dock .fe-dock-rail:hover { background: #f1f5f9; }
+#fe-dock .fe-dock-rail-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #1e5eff;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+#fe-dock .fe-dock-rail-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-align: center;
+  color: #475569;
+}
+html.fe-dock-collapsed #fe-dock .fe-dock-rail { display: flex; }
+html.fe-dock-collapsed #fe-dock .fe-dock-body { display: none; }
+
+/* ---- 4. 展开态主体 ---- */
+#fe-dock .fe-dock-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#fe-dock .fe-dock-top {
+  flex: 0 0 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px 0 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #eef2f7;
+}
+#fe-dock .fe-dock-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+#fe-dock .fe-dock-brand-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+#fe-dock .fe-dock-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: #1e5eff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+#fe-dock .fe-dock-brand-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#fe-dock .fe-dock-collapse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+#fe-dock .fe-dock-collapse:hover {
+  background: #e8eefb;
+  color: #1e5eff;
+}
+#fe-dock .fe-dock-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  background: #fff;
+}
+/* 滚动条样式下放到各 pane：dock-content 本身不再滚 */
+#fe-dock .fe-dock-content::-webkit-scrollbar { width: 0; }
+
+/* ---- 5. 面板在窄栏内的适配 ---- */
+#fe-dock #flowenglish-root {
+  margin: 0;
+  font-size: 14px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#fe-dock #flowenglish-root .fe-launcher {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid #eef2f7;
+}
+#fe-dock #flowenglish-root .fe-launcher-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+#fe-dock #flowenglish-root .fe-launcher-actions .fe-btn {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+}
+#fe-dock #flowenglish-root .fe-brand-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 42px;
+}
+#fe-dock #flowenglish-root .fe-launcher-status {
+  text-align: center;
+  font-size: 12px;
+}
+
+/* 面板：flex column，head/pane 分层，dock-content 高度受限后 pane 才能滚动 */
+#fe-dock #flowenglish-root .fe-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+}
+
+/* 面板 head 永远贴顶 */
+#fe-dock #flowenglish-root .fe-head {
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef2f7;
+  background: #f8fafc;
+}
+/* dock 模式下覆写 .fe-body：去掉全局 max-height/overflow，让它成为
+ * 真 flex 列容器（flex:1 + min-height:0 + overflow:hidden），把剩余高度
+ * 交给唯一的 .fe-pane，让 .fe-pane 自己滚动 — 这是 sticky 生效的前提 */
+#fe-dock #flowenglish-root .fe-body {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#fe-dock #flowenglish-root .fe-head-left {
+  width: 100%;
+  flex-wrap: wrap;
+}
+#fe-dock #flowenglish-root .fe-brand-mini {
+  font-size: 13px;
+}
+#fe-dock #flowenglish-root .fe-title {
+  max-width: none;
+  flex: 1 1 100%;
+  order: 3;
+  font-size: 12px;
+}
+#fe-dock #flowenglish-root .fe-tabs {
+  width: 100%;
+  gap: 2px;
+}
+#fe-dock #flowenglish-root .fe-tab {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 12.5px;
+  text-align: center;
+}
+#fe-dock #flowenglish-root .fe-head-right {
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* 各 pane：只有激活的占满高度并自带滚动条 */
+#fe-dock #flowenglish-root .fe-pane {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 12px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+#fe-dock #flowenglish-root .fe-pane::-webkit-scrollbar { width: 8px; }
+#fe-dock #flowenglish-root .fe-pane::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+#fe-dock #flowenglish-root .fe-pane::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+#fe-dock #flowenglish-root .fe-pane::-webkit-scrollbar-track { background: transparent; }
+#fe-dock #flowenglish-root .fe-pane[hidden] { display: none; }
+
+/* ---- 字幕 tab：now-card 永远贴顶，下方滚动 cue-list ---- */
+#fe-dock #flowenglish-root .fe-pane[data-pane="subs"] .fe-now-card {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #fff;
+  margin: 0 -12px;
+  padding: 12px 12px 14px;
+  border-bottom: 1px solid #eef2f7;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+#fe-dock #flowenglish-root .fe-pane[data-pane="subs"] .fe-cue-list { padding: 8px 0 0; }
+
+#fe-dock #flowenglish-root .fe-cue {
+  padding: 8px 6px;
+  gap: 8px;
+}
+#fe-dock #flowenglish-root .fe-cue-side { width: 58px; }
+#fe-dock #flowenglish-root .fe-cue-en { font-size: 13.5px; }
+#fe-dock #flowenglish-root .fe-cue-zh { font-size: 12.5px; }
+#fe-dock #flowenglish-root .fe-now-en { font-size: 15px; }
+#fe-dock #flowenglish-root .fe-now-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#fe-dock #flowenglish-root .fe-now-actions .fe-btn {
+  flex: 1 1 auto;
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+/* ---- 笔记 tab：编辑器 + 中文 toggle 贴顶，notes-list 滚动 ---- */
+#fe-dock #flowenglish-root .fe-pane[data-pane="notes"] .fe-note-editor {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #fff;
+  margin: 0 -12px;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid #eef2f7;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+#fe-dock #flowenglish-root .fe-pane[data-pane="notes"] .fe-notes-list { padding-top: 12px; }
+
+/* ---- 练习 tab：reveal 原英文样式 ---- */
+#fe-dock #flowenglish-root .fe-quiz-item {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+#fe-dock #flowenglish-root .fe-quiz-no {
+  font-weight: 700;
+  color: #94a3b8;
+  width: 22px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+#fe-dock #flowenglish-root .fe-quiz-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#fe-dock #flowenglish-root .fe-quiz-hint {
+  font-size: 13px;
+  color: #1f2937;
+  background: #f1f5f9;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 3px solid #1e5eff;
+  line-height: 1.55;
+}
+#fe-dock #flowenglish-root .fe-quiz-textarea {
+  resize: vertical;
+  min-height: 52px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  padding: 8px 10px;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-family: inherit;
+}
+#fe-dock #flowenglish-root .fe-quiz-textarea:focus {
+  outline: none;
+  border-color: #1e5eff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(30, 94, 255, 0.12);
+}
+#fe-dock #flowenglish-root .fe-quiz-textarea[disabled] {
+  background: #f8fafc;
+  color: #475569;
+}
+#fe-dock #flowenglish-root .fe-quiz-reveal {
+  background: #f1f5f9;
+  border-radius: 8px;
+  border-left: 3px solid #22c55e;
+  padding: 8px 10px;
+}
+#fe-dock #flowenglish-root .fe-quiz-reveal-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #16a34a;
+  margin-bottom: 4px;
+}
+#fe-dock #flowenglish-root .fe-quiz-reveal-text {
+  font-size: 13.5px;
+  color: #0f172a;
+  font-weight: 500;
+  line-height: 1.55;
+}
+#fe-dock #flowenglish-root .fe-quiz-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 56px;
+}
+#fe-dock #flowenglish-root .fe-quiz-status {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+#fe-dock #flowenglish-root .fe-quiz-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 4px 4px;
+}
+
+/* ---- 生词 tab ---- */
+#fe-dock #flowenglish-root .fe-word-row {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+/* ---- 6. 窄栏下的响应式微调 ---- */
+@media (max-width: 1100px) {
+  #fe-dock #flowenglish-root .fe-cue-side { width: 52px; }
+  #fe-dock #flowenglish-root .fe-cue-en { font-size: 13px; }
+}

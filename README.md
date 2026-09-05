@@ -2,7 +2,9 @@
 
 B 站英文课程学习助手（Chrome / Edge 扩展，Manifest V3）。
 
-在 B 站视频播放器下方新增一个 **flowenglish** 按钮。**手动点击才激活全部学习功能，不会自动运行**。
+打开 B 站视频页后，**右侧会出现一条 FlowEnglish 侧栏**（约页面宽度的 1/8，含 launcher + 学习面板）。**手动点击侧栏里的 flowenglish 按钮才激活全部学习功能，不会自动运行**。
+
+> 侧栏顶部有「›」按钮可一键收起为 46px 窄条（B 站内容恢复全宽），再次点击展开。B 站播放器进入全屏时侧栏自动隐藏。
 
 ## 核心原则
 
@@ -18,7 +20,7 @@ B 站英文课程学习助手（Chrome / Edge 扩展，Manifest V3）。
 
 1. Chrome 打开 `chrome://extensions/`，开启右上角「开发者模式」。
 2. 点「加载已解压的扩展程序」，选择本目录（包含 `manifest.json`）。
-3. 打开任意 B 站视频页（`bilibili.com/video/BV...`），播放器下方会出现 **flowenglish** 按钮（首页、列表页不显示）。
+3. 打开任意 B 站视频页（`bilibili.com/video/BV...`），**右侧会出现一条 FlowEnglish 侧栏**（首页、列表页不显示）。
 
 ## 使用流程
 

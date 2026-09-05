@@ -27,6 +27,7 @@
     asrStopTime: null,      // ASR 停止位置（续传用）
     quiz: null,
     translating: false,
+    dockCollapsed: false,   // 右侧停靠栏是否折叠
     observers: []
   };
 
@@ -118,15 +119,91 @@
     }
   }
 
-  /* ================= 锚点与挂载（防抖防重复） ================= */
+  /* ================= 右侧停靠栏（自建容器，不依赖 B 站 DOM） =================
+   * 设计要点：
+   * - #fe-dock 是一个 position:fixed 的右侧竖栏，宽度 = 页面宽度 1/8（clamp 280~440px）
+   * - 同时给 <html> 加 .fe-dock-open 并把 --fe-dock-w 写进 CSS 变量，
+   *   由 styles.css 把 B 站主体内容往左挤（body padding-right + fixed header 修正）
+   * - 折叠态：只剩 46px 窄条，B 站内容恢复满宽
+   */
+  var DOCK_ID = 'fe-dock';
+  var DOCK_MIN = 420;          /* 较之前 280 加宽 50%，避免字幕挤压 */
+  var DOCK_MAX = 560;
+  var DOCK_RAIL = 46;
+
+  function dockWidthPx() {
+    var vw = global.innerWidth || document.documentElement.clientWidth || 1280;
+    /* 默认页面宽度的 3/16 ≈ 18.75%（比 1/8 = 12.5% 再宽 50%），clamp 420~560 */
+    var target = Math.round(vw * 3 / 16);
+    target = Math.max(DOCK_MIN, Math.min(DOCK_MAX, target));
+    /* 窄屏保底：至少给 B 站留 960px 布局空间，dock 相应收窄（最低 320） */
+    var maxByVw = Math.max(320, vw - 960);
+    return Math.min(target, maxByVw);
+  }
+
+  function applyDockWidth() {
+    var w = S.dockCollapsed ? DOCK_RAIL : dockWidthPx();
+    document.documentElement.style.setProperty('--fe-dock-w', w + 'px');
+  }
+
+  function setDockCollapsed(v, persist) {
+    S.dockCollapsed = !!v;
+    document.documentElement.classList.toggle('fe-dock-collapsed', !!v);
+    applyDockWidth();
+    if (persist) {
+      FE.store.setConfig({ ui: { dockCollapsed: !!v } }).then(function (cfg) {
+        S.config = cfg;
+      });
+    }
+  }
+
+  function ensureDock() {
+    var dock = document.getElementById(DOCK_ID);
+    if (dock && dock.isConnected) return dock;
+
+    dock = document.createElement('div');
+    dock.id = DOCK_ID;
+    dock.innerHTML =
+      '<button class="fe-dock-rail" type="button" title="展开 FlowEnglish" aria-label="展开 FlowEnglish">' +
+        '<span class="fe-dock-rail-mark">F</span>' +
+        '<span class="fe-dock-rail-text">Flow<br>English</span>' +
+      '</button>' +
+      '<div class="fe-dock-body">' +
+        '<div class="fe-dock-top">' +
+          '<span class="fe-dock-brand">' +
+            '<span class="fe-dock-logo">F</span>' +
+            '<span class="fe-dock-brand-name">FlowEnglish</span>' +
+          '</span>' +
+          '<button class="fe-dock-collapse" type="button" title="收起侧栏" aria-label="收起侧栏">' +
+            '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+              '<path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+            '</svg>' +
+          '</button>' +
+        '</div>' +
+        '<div class="fe-dock-content"></div>' +
+      '</div>';
+
+    /* 挂在 <html> 而不是 <body>：body 在 dock 打开时被整体 zoom 缩放，
+       dock 自己必须留在未缩放的坐标系里，否则会跟着变小、错位 */
+    document.documentElement.appendChild(dock);
+
+    var rail = dock.querySelector('.fe-dock-rail');
+    if (rail) rail.addEventListener('click', function () { setDockCollapsed(false, true); });
+    var collapseBtn = dock.querySelector('.fe-dock-collapse');
+    if (collapseBtn) collapseBtn.addEventListener('click', function () { setDockCollapsed(true, true); });
+
+    document.documentElement.classList.add('fe-dock-open');
+    document.documentElement.classList.toggle('fe-dock-collapsed', !!S.dockCollapsed);
+    applyDockWidth();
+    return dock;
+  }
+
   function findAnchor() {
-    var player = document.querySelector('#bilibili-player');
-    if (player) return { el: player, mode: 'after' };
-    var wrap = document.querySelector('#playerWrap');
-    if (wrap) return { el: wrap, mode: 'append' };
-    var alt = document.querySelector('.player-wrap') || document.querySelector('.bpx-player-container');
-    if (alt) return { el: alt, mode: 'after' };
-    return null;
+    var dock = ensureDock();
+    if (!dock) return null;
+    var content = dock.querySelector('.fe-dock-content');
+    if (!content) return null;
+    return { el: content, mode: 'append' };
   }
 
   /* ============ 挂载（永不放弃：B 站播放区会反复动态重建） ============ */
@@ -530,62 +607,84 @@
 
     S.translating = true;
     if (S.panel) S.panel.toast('正在生成中文翻译…');
-    var chunks = FE.subtitle.chunkCues(missing, 1200, 20);
-    var chain = Promise.resolve();
+    /* 改小批次：每批 ≤500 字 ≤8 句，比之前 1200/20 更快出第一条中文 */
+    var chunks = FE.subtitle.chunkCues(missing, 500, 8);
+    var queue = chunks.slice();
     var failedCount = 0;
-    chunks.forEach(function (chunk) {
-      chain = chain.then(function () {
-        var lines = chunk.map(function (c, i) { return (i + 1) + '. ' + c.text; }).join('\n');
-        return bg(MSG.CHAT, {
-          purpose: 'translate',
-          messages: [
-            { role: 'system', content: 'You are a subtitle translator. Translate English subtitle lines into natural Simplified Chinese. Reply with ONLY a JSON array of strings, same order and same count as input. No commentary.' },
-            { role: 'user', content: lines }
-          ]
-        }).then(function (res) {
-          if (!res.ok) {
-            failedCount++;
-            try { console.log('[FE/translate] fail', res.error); } catch (e) { /* ignore */ }
-            return;
-          }
+    var doneCount = 0;
+    var totalCues = rec.cues.length;
+
+    function translateOne(chunk) {
+      var lines = chunk.map(function (c, i) { return (i + 1) + '. ' + c.text; }).join('\n');
+      return bg(MSG.CHAT, {
+        purpose: 'translate',
+        messages: [
+          { role: 'system', content: 'You are a subtitle translator. Translate English subtitle lines into natural Simplified Chinese. Reply with ONLY a JSON array of strings, same order and same count as input. No commentary.' },
+          { role: 'user', content: lines }
+        ]
+      }).then(function (res) {
+        var got = 0;
+        if (res && res.ok) {
           var arr = null;
           try { arr = JSON.parse(res.text); }
           catch (e) {
             var m = String(res.text || '').match(/\[[\s\S]*\]/);
             if (m) { try { arr = JSON.parse(m[0]); } catch (e2) { /* ignore */ } }
           }
-          if (!Array.isArray(arr)) {
+          if (Array.isArray(arr)) {
+            chunk.forEach(function (c, i) {
+              if (arr[i]) { c.zh = String(arr[i]).trim(); got++; }
+            });
+          } else {
             failedCount++;
             try { console.log('[FE/translate] bad response', String(res.text).slice(0, 300)); } catch (e2) { /* ignore */ }
-            return;
           }
-          chunk.forEach(function (c, i) {
-            if (arr[i]) c.zh = String(arr[i]).trim();
-          });
-        });
-      });
-    });
-    chain.then(function () {
-      S.translating = false;
-      rec.updatedAt = Date.now();
-      FE.store.saveVideo(rec).then(function () {
-        var stillMissing = rec.cues.filter(function (c) { return !c.zh; }).length;
+        } else {
+          failedCount++;
+          try { console.log('[FE/translate] fail', res && res.error); } catch (e) { /* ignore */ }
+        }
+        doneCount++;
+        try { console.log('[FE/translate] chunk ' + doneCount + '/' + chunks.length + ' +' + got); } catch (e) {}
+        /* 每完成一批：立即增量刷新 panel，让字幕列表中文一条条亮起来 */
+        rec.updatedAt = Date.now();
         if (S.panel) {
           S.panel.setRecord(rec);
-          if (stillMissing > 0) {
-            S.panel.setTranslateNotice({
-              type: 'failed',
-              message: '有 ' + stillMissing + ' 句中文翻译失败' + (failedCount ? '（' + failedCount + ' 批请求出错）' : ''),
-              missing: stillMissing
-            });
-            S.panel.toast('部分句子翻译失败，可点击提示条重试', 5000);
-          } else {
-            S.panel.setTranslateNotice(null);
-            S.panel.toast('中文翻译完成');
-          }
+          var translated = rec.cues.filter(function (c) { return c.zh; }).length;
+          var remaining = queue.length;
+          if (remaining > 0) S.panel.toast('翻译中：' + translated + ' / ' + totalCues, 900);
         }
-        if (force && stillMissing === 0) ensureChineseOn();
+        FE.store.patchVideo(rec.bvid, rec.page, { cues: rec.cues, updatedAt: rec.updatedAt });
+      }).catch(function (e) {
+        failedCount++; doneCount++;
+        try { console.log('[FE/translate] error', e); } catch (ex) { /* ignore */ }
       });
+    }
+
+    function worker() {
+      var chunk = queue.shift();
+      if (!chunk) return Promise.resolve();
+      return translateOne(chunk).then(worker);
+    }
+
+    /* 并发 2 个 worker：单批小，2 路并行既快又不挤爆 LLM */
+    Promise.all([worker(), worker()]).then(function () {
+      S.translating = false;
+      var stillMissing = rec.cues.filter(function (c) { return !c.zh; }).length;
+      if (S.panel) {
+        S.panel.setRecord(rec);
+        if (stillMissing > 0) {
+          S.panel.setTranslateNotice({
+            type: 'failed',
+            message: '有 ' + stillMissing + ' 句中文翻译失败' + (failedCount ? '（' + failedCount + ' 批请求出错）' : ''),
+            missing: stillMissing
+          });
+          S.panel.toast('部分句子翻译失败，可点击提示条重试', 5000);
+        } else {
+          S.panel.setTranslateNotice(null);
+          S.panel.toast('中文翻译完成');
+        }
+      }
+      if (force && stillMissing === 0) ensureChineseOn();
     });
   }
 
@@ -829,35 +928,47 @@
       var rec = S.record;
       var items = FE.subtitle.buildQuiz((rec && rec.cues) || [], { count: 5 });
       if (!items.length) {
-        if (S.panel) S.panel.toast('字幕太短，无法出题');
+        if (S.panel) S.panel.toast('字幕太短或没有中文翻译，请先开启中文显示');
         return;
       }
-      S.quiz = { items: items, answers: [], graded: false, score: 0 };
+      S.quiz = { items: items, answers: [], graded: false };
       if (S.panel) S.panel.setQuiz(S.quiz);
     },
 
     submitQuiz: function (answers) {
       var q = S.quiz;
       if (!q || q.graded) return;
-      var score = 0;
-      q.items = q.items.map(function (it, i) {
-        var ans = String(answers[i] || '').trim().toLowerCase();
-        var ok = ans === it.answer.toLowerCase();
-        if (ok) score++;
-        return Object.assign({}, it, { correct: ok });
-      });
+      /* 不再判分：reveal 原英文让用户自查 */
       q.answers = answers;
       q.graded = true;
-      q.score = score;
-      var exercises = ((S.record && S.record.exercises) || []).concat([{
-        id: util.uid('ex'),
+      if (S.panel) S.panel.setQuiz(q);
+    },
+
+    /* 把单题（含用户输入与原句、中文）一键写入笔记 */
+    saveQuizNote: function (item, userInput) {
+      if (!S.pageInfo || !item) return;
+      var lines = [];
+      if (item.hint) lines.push('【中】' + item.hint);
+      lines.push('【英】' + item.sentence);
+      var u = (userInput || '').trim();
+      if (u) lines.push('【我的】' + u);
+      lines.push('[' + util.formatTime(item.start || 0) + ']');
+      var text = lines.join('\n');
+      var notes = ((S.record && S.record.notes) || []).concat([{
+        id: util.uid('n'),
+        start: item.start || 0,
+        text: text,
         createdAt: Date.now(),
-        items: q.items.map(function (it, i) { return { q: it.sentence, a: it.answer, user: answers[i] || '', correct: it.correct }; }),
-        score: score
+        updatedAt: Date.now(),
+        ai: false,
+        kind: 'quiz'
       }]);
-      FE.store.patchVideo(S.pageInfo.bvid, S.pageInfo.page, { exercises: exercises }).then(function (rec) {
+      FE.store.patchVideo(S.pageInfo.bvid, S.pageInfo.page, { notes: notes }).then(function (rec) {
         S.record = rec;
-        if (S.panel) S.panel.setQuiz(S.quiz);
+        if (S.panel) {
+          S.panel.setRecord(rec);
+          S.panel.toast('已加入笔记');
+        }
       });
     },
 
@@ -1020,10 +1131,43 @@
     }
   }, true);
 
+  /* ================= 窗口 / 全屏 / 路由 ================= */
+  global.addEventListener('resize', util.debounce(function () {
+    if (!S.dockCollapsed) applyDockWidth();
+  }, 200));
+
+  /* 播放器全屏时收起侧栏，避免遮挡画面 */
+  function syncFullscreen() {
+    var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    document.documentElement.classList.toggle('fe-fullscreen', !!fsEl);
+  }
+  document.addEventListener('fullscreenchange', syncFullscreen);
+  document.addEventListener('webkitfullscreenchange', syncFullscreen);
+
+  /* B 站是 SPA：路由切走视频页后要摘掉侧栏并复位宽度 */
+  function syncDockVisibility() {
+    var onVideo = isVideoPage();
+    if (!onVideo) {
+      var dock = document.getElementById(DOCK_ID);
+      if (dock) dock.remove();
+      document.documentElement.classList.remove('fe-dock-open');
+      document.documentElement.classList.remove('fe-dock-collapsed');
+      document.documentElement.style.removeProperty('--fe-dock-w');
+      S.panel = null;
+      return;
+    }
+    if (!document.getElementById(DOCK_ID)) {
+      S.panel = null;
+      ensureMounted();
+    }
+  }
+  setInterval(syncDockVisibility, 1500);
+
   /* ================= 启动 ================= */
   function boot() {
     FE.store.getConfig().then(function (cfg) {
       S.config = cfg;
+      S.dockCollapsed = !!(cfg.ui && cfg.ui.dockCollapsed);
       if (!S.pageInfo) S.pageInfo = fallbackPageInfo();
       ensureMounted();
       if (S.panel && S.pageInfo) S.panel.setPageInfo(S.pageInfo);
